@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Game Bài 1 – Lật thẻ ghép cặp</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#EAF3FB;color:#1F2937}
+header{background:#0B5EA8;color:#fff;padding:14px 18px;border-bottom:5px solid #F28C28}
+header h1{margin:0;font-size:20px}header p{margin:4px 0 0;font-size:13px;color:#cfe3f7}
+main{max-width:860px;margin:0 auto;padding:14px}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.stat{background:#fff;border:2px solid #0B5EA8;border-radius:10px;padding:6px 12px;font-weight:bold}
+button{background:#F28C28;color:#fff;border:0;border-radius:10px;padding:9px 16px;font-size:15px;font-weight:bold;cursor:pointer}
+#grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.card{perspective:700px;height:105px;cursor:pointer}
+.in{position:relative;width:100%;height:100%;transition:transform .45s;transform-style:preserve-3d}
+.card.on .in{transform:rotateY(180deg)}
+.f,.b{position:absolute;inset:0;border-radius:12px;display:flex;align-items:center;justify-content:center;text-align:center;padding:6px;backface-visibility:hidden;font-size:13px;font-weight:bold}
+.f{background:#0B5EA8;color:#fff;font-size:30px;border:3px solid #073B6B}
+.b{background:#fff;border:3px solid #0B5EA8;transform:rotateY(180deg)}
+.card.k .b{background:#fff1e0;border-color:#F28C28}
+.card.ok .b{background:#d9f2dc;border-color:#2e9b43}
+#msg{margin:14px 0;padding:12px;border-radius:10px;background:#fff;border-left:6px solid #F28C28;font-size:15px}
+@media(max-width:560px){#grid{grid-template-columns:repeat(3,1fr)}.card{height:110px}}
+</style>
+</head>
+<body>
+<header><h1>Bài 1 – Làm quen với vật lí: Lật thẻ ghép cặp</h1><p>Lật hai thẻ để ghép đúng nhà khoa học / mô hình với nội dung tương ứng.</p></header>
+<main>
+<div class="bar"><span class="stat">Lượt: <span id="mv">0</span></span><span class="stat">Cặp đúng: <span id="pr">0</span>/8</span><span class="stat">Thời gian: <span id="tm">0</span> s</span><button onclick="start()">Chơi lại</button></div>
+<div id="grid"></div>
+<div id="msg">Bấm vào một thẻ để bắt đầu!</div>
+</main>
+<script>
+var P=[["Galilei","Làm thí nghiệm tại tháp nghiêng Pisa (1600)"],["Newton","Công bố các nguyên lí Toán học của Triết học tự nhiên (1687)"],["Faraday","Tìm ra hiện tượng cảm ứng điện từ (1831)"],["Planck","Xây dựng thuyết lượng tử (1900)"],["Einstein","Xây dựng thuyết tương đối (1905)"],["James Watt","Sáng chế máy hơi nước (1765)"],["Chất điểm","Mô hình lí thuyết"],["Quả địa cầu","Mô hình vật chất"]];
+var open=[],lock=false,moves=0,pairs=0,t0=0,timer=null;
+function $(i){return document.getElementById(i)}
+function start(){
+  var cs=[];P.forEach(function(p,i){cs.push({id:i,t:p[0],k:1});cs.push({id:i,t:p[1],k:0})});
+  cs.sort(function(){return Math.random()-.5});
+  var g=$("grid");g.innerHTML="";open=[];lock=false;moves=0;pairs=0;t0=0;clearInterval(timer);
+  $("mv").textContent=0;$("pr").textContent=0;$("tm").textContent=0;$("msg").textContent="Bấm vào một thẻ để bắt đầu!";
+  cs.forEach(function(c){
+    var d=document.createElement("div");d.className="card"+(c.k?" k":"");
+    d.innerHTML='<div class="in"><div class="f">?</div><div class="b"></div></div>';
+    d.querySelector(".b").textContent=c.t;d.onclick=function(){flip(d,c)};g.appendChild(d)});
+}
+function flip(d,c){
+  if(lock||d.classList.contains("on"))return;
+  if(!t0){t0=Date.now();timer=setInterval(function(){$("tm").textContent=Math.floor((Date.now()-t0)/1000)},500)}
+  d.classList.add("on");open.push({d:d,c:c});
+  if(open.length==2){
+    moves++;$("mv").textContent=moves;lock=true;
+    var a=open[0],b=open[1];
+    if(a.c.id==b.c.id){
+      setTimeout(function(){a.d.classList.add("ok");b.d.classList.add("ok");pairs++;$("pr").textContent=pairs;
+        $("msg").textContent="Chính xác! "+P[a.c.id][0]+": "+P[a.c.id][1]+".";open=[];lock=false;
+        if(pairs==8){clearInterval(timer);$("msg").textContent="Hoàn thành! Em ghép xong 8 cặp sau "+moves+" lượt, "+Math.floor((Date.now()-t0)/1000)+" giây."}},400);
+    }else{
+      $("msg").textContent="Chưa đúng, hãy thử lại!";
+      setTimeout(function(){a.d.classList.remove("on");b.d.classList.remove("on");open=[];lock=false},900);
+    }
+  }
+}
+start();
+</script>
+</body>
+</html>
